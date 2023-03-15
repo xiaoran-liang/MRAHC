@@ -3,12 +3,16 @@ MR-AHC is an R package for detecting genetic variant clusters and conducting pos
 
 # Functions
 There are two main functions:
-**MR_AHC**: conduct clustering analysis in MR with one outcome and one exposure.
-**MR_AHC_two**: conduct clustering analysis in MR with two outcomes and a common exposure.
+
+- **MR_AHC**: conduct clustering analysis in MR with one outcome and one exposure.
+- **MR_AHC_two**: conduct clustering analysis in MR with two outcomes and a common exposure.
 
 # Installation
+
+```R
 install.packages("devtools")
 devtools::install_github("xiaoran-liang/MR-AHC")
+```
 
 # Running example
 ```R
