@@ -19,9 +19,10 @@ devtools::install_github("xiaoran-liang/MRAHC")
 # Running example
 ```R
 ## The usage of the two main functions are illustrated with simulated data generated with sample size = 60000
+
 ## (1). illustration of the usage of the MR_AHC function
 ## read data
-dat <- MRAHC::date_example_one
+dat <- MRAHC::data_example_one
 betaX <- dat$est_x  # SNP-exposure associations
 seX <- dat$se_x  # standard errors of the SNP-exposure associations
 betaY <- dat$est_y  # SNP-outcome associations
@@ -64,7 +65,7 @@ output_1_a$confidence_interval
 
 ## (2). illustration of the usage of the MR_AHC_two function
 ## read data
-dat <- MRAHC::date_example_two
+dat <- MRAHC::data_example_two
 betaX <- dat$est_x  # SNP-exposure associations
 seX <- dat$se_x  # standard errors of the SNP-exposure associations
 betaY1 <- dat$est_y1  # SNP-outcome associations for outcome 1
