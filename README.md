@@ -13,7 +13,7 @@ There are two main functions:
 
 ```R
 install.packages("devtools")
-devtools::install_github("xiaoran-liang/MR-AHC")
+devtools::install_github("xiaoran-liang/MRAHC")
 ```
 
 # Running example
