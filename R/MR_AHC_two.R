@@ -357,7 +357,9 @@ hier_tree <- function(b1, b2, se1, se2, rho){
   base_est <- rbind(base_est, merge_est_init);
 
   base_dissm <- dissm_init[-merge_id_init, -merge_id_init];
-  base_dissm <- cbind(base_dissm, rep(NA, nrow(base_dissm))) %>% rbind(rep(NA, ncol(base_dissm)+1));
+  #base_dissm <- cbind(base_dissm, rep(NA, nrow(base_dissm))) %>% rbind(rep(NA, ncol(base_dissm)+1));
+  base_dissm <- rbind(cbind(base_dissm, rep(NA, nrow(base_dissm))),
+                      rep(NA, ncol(base_dissm)+1));
 
   tree_id[[2]] <- base_id;
   tree_est[[2]] <- base_est;
@@ -399,7 +401,9 @@ hier_tree <- function(b1, b2, se1, se2, rho){
     tree_est[[i]] <- rbind(tree_est[[i]], merge_est);
 
     tree_dissm[[i]] <- as.matrix(tree_dissm[[i - 1]][-merge_id, -merge_id]);
-    tree_dissm[[i]] <- cbind(tree_dissm[[i]], rep(NA, nrow(tree_dissm[[i]]))) %>% rbind(rep(NA, ncol(tree_dissm[[i]])+1));
+    #tree_dissm[[i]] <- cbind(tree_dissm[[i]], rep(NA, nrow(tree_dissm[[i]]))) %>% rbind(rep(NA, ncol(tree_dissm[[i]])+1));
+    tree_dissm[[i]] <- rbind(cbind(tree_dissm[[i]], rep(NA, nrow(tree_dissm[[i]]))),
+                             rep(NA, ncol(tree_dissm[[i]])+1));
 
   }
 
