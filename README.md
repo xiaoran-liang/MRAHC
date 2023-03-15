@@ -1,5 +1,5 @@
-# MR-AHC
-MR-AHC is an R package for detecting genetic variant clusters and conducting post-clustering estimation using summary statistics in Mendelian randomisation. When there is mechanistic homogeneity, genetic variants involved in MR analysis can be divided into clusters identifying distinct causal effects driven by different biological mechanisms. Variants are classified into the same cluster only if their variant-specific causal estimates are similar to each other.
+# MRAHC
+MRAHC is an R package for detecting genetic variant clusters and conducting post-clustering estimation using summary statistics in Mendelian randomisation. When there is mechanistic homogeneity, genetic variants involved in MR analysis can be divided into clusters identifying distinct causal effects driven by different biological mechanisms. Variants are classified into the same cluster only if their variant-specific causal estimates are similar to each other.
 
 # Functions
 There are two main functions:
