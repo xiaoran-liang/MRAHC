@@ -29,13 +29,13 @@ betaY <- dat$est_y  # SNP-outcome associations
 seY <- dat$se_y  # standard errors of the SNP-outcome associations
 
 ## run the function without outlier removal
-output_1_a <- MR_AHC(betaX, betaY, seX, seY, n = 60000, outremove = FALSE)
+output_1_a <- MRAHC::MR_AHC(betaX, betaY, seX, seY, n = 60000, outremove = FALSE)
 
 ## run the function with one-time outlier removal
-output_1_b <- MR_AHC(betaX, betaY, seX, seY, n = 60000, outremove = TRUE, iter = FALSE)
+output_1_b <- MRAHC::MR_AHC(betaX, betaY, seX, seY, n = 60000, outremove = TRUE, iter = FALSE)
 
 ## run the function with iterated outlier removal
-output_1_c <- MR_AHC(betaX, betaY, seX, seY, n = 60000, outremove = TRUE, iter = TRUE)
+output_1_c <- MRAHC::MR_AHC(betaX, betaY, seX, seY, n = 60000, outremove = TRUE, iter = TRUE)
 
 ## check the output. All three ways have the same output, take the one without outlier removal as an example:
 ## 1. total number of detected clusters
@@ -74,13 +74,13 @@ betaY2 <- dat$est_y2  # SNP-outcome associations for outcome 2
 seY2 <- dat$se_y2  # standard errors of the SNP-outcome associations for outcome 2
 
 ## run the function without outlier removal
-output_2_a <- MR_AHC_two(betaX, betaY1, betaY2, seX, seY1, seY2, n = 60000, outremove = FALSE)
+output_2_a <- MRAHC::MR_AHC_two(betaX, betaY1, betaY2, seX, seY1, seY2, n = 60000, outremove = FALSE)
 
 ## run the function with one-time outlier removal
-output_2_b <- MR_AHC_two(betaX, betaY1, betaY2, seX, seY1, seY2, n = 60000, outremove = TRUE, iter = FALSE)
+output_2_b <- MRAHC::MR_AHC_two(betaX, betaY1, betaY2, seX, seY1, seY2, n = 60000, outremove = TRUE, iter = FALSE)
 
 ## run the function with iterated outlier removal
-output_2_c <- MR_AHC_two(betaX, betaY1, betaY2, seX, seY1, seY2, n = 60000, outremove = TRUE, iter = TRUE)
+output_2_c <- MRAHC::MR_AHC_two(betaX, betaY1, betaY2, seX, seY1, seY2, n = 60000, outremove = TRUE, iter = TRUE)
 
 ## check the output. The output is the same as the MR_AHC function, with the exception of the null cluster results:
 output_2_c$Null_cluster_1 ## the cluster index of the null cluster for outcome 1
