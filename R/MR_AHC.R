@@ -112,41 +112,85 @@ MR_AHC <-function(betaX, betaY, seX, seY, n, alpha = 0.05,
 
   if (Qsq.all.p > tuning){
     # all the IVs are selected as in the same cluster. No need for clustering.
-    AHC_cluster <- list(c(1:pz));
+    AHC_real <- list(c(1:pz));
+    AHC_junk <- NULL;
   }else{
     # AHC procedure
     AHC_cluster <- AHC.IV(betaX, betaY, seX, seY, n, tuning, weak); ## this is the substantive clusters
-  }
+    # IVs that do not belong to any clusters are classified as in the junk cluster.
+    AHC_junk <- sort(c(1:pz)[-unlist(AHC_cluster)]);
 
-  # IVs that do not belong to any clusters are classified as in the junk cluster.
-  AHC_junk <- sort(c(1:pz)[-unlist(AHC_cluster)]);
+    # trimming the small clusters
+    small.index = which(lapply(AHC_cluster, length) <= smallcluster)
+    if (length(small.index) != 0){
+      AHC_junk_new <- sort(unlist(AHC_cluster[small.index]))
+      AHC_junk = sort(union(AHC_junk_new, AHC_junk))
+      AHC_cluster <- AHC_cluster[-small.index]
+    }
 
-  # trimming the small clusters
-  small.index = which(lapply(AHC_cluster, length) <= smallcluster)
-  if (length(small.index) != 0){
-    AHC_junk_new <- sort(unlist(AHC_cluster[small.index]))
-    AHC_junk = sort(union(AHC_junk_new, AHC_junk))
-    AHC_cluster <- AHC_cluster[-small.index]
-  }
+    AHC_real <- AHC_cluster;
+    Nr_real <- length(AHC_real); # number of substantive clusters
 
-  AHC_real <- AHC_cluster;
-  Nr_real <- length(AHC_real); # number of substantive clusters
+    ## Outlier removal
+    if (outremove == TRUE){
 
-  ## Outlier removal
-  if (outremove == TRUE){
+      ## Iterated outlier removal
+      if (iter == TRUE){
 
-    ## Iterated outlier removal
-    if (iter == TRUE){
+        n_real <- c();
+        n_real[1] <- Inf;
+        n_real[2] <- length(unlist(AHC_real)); ## number of SNPs in the substantive clusters
 
-      n_real <- c();
-      n_real[1] <- Inf;
-      n_real[2] <- length(unlist(AHC_real)); ## number of SNPs in the substantive clusters
+        i = 2;
+        while (n_real[i] - n_real[i - 1] < 0){
 
-      i = 2;
-      while (n_real[i] - n_real[i - 1] < 0){
+          Nr_real <- length(AHC_real);
+          # filter SNPs with large contribution to the Q statistic
+          for (k_iter in 1:Nr_real){
+            leaf <- AHC_real[[k_iter]];
+            Q_ind <- Qsq(betaX[leaf], betaY[leaf], seX[leaf], seY[leaf])[[5]];
+            Q_ind_p <- 1-pchisq(Q_ind, df = 1);
 
-        Nr_real <- length(AHC_real);
+            p_threshold <- iter.p;
+            leaf_new <- leaf[which(Q_ind_p >= p_threshold)];
+            leaf_remove <- leaf[which(Q_ind_p < p_threshold)];
+
+            AHC_real[[k_iter]] <- leaf_new;
+            AHC_junk <- sort(union(AHC_junk, leaf_remove))
+          }
+
+          real_snp <- sort(unlist(AHC_real));
+          i <- i + 1;
+          n_real[i] <- length(real_snp);
+
+          ## if any SNPs get removed, re-do clustering
+          if (n_real[i] - n_real[i - 1] < 0){
+            AHC_new <- AHC.IV(betaX[real_snp], betaY[real_snp], seX[real_snp], seY[real_snp],
+                              n, tuning, weak);
+
+            AHC_real <- AHC_new ## re-value AHC_real;
+            for (k_new in 1:length(AHC_new)){
+              AHC_real[[k_new]] <- real_snp[AHC_new[[k_new]]];
+            }
+
+            junk_new <- setdiff(real_snp, sort(unlist(AHC_real)));
+            AHC_junk <- sort(c(AHC_junk, junk_new))
+
+            # trimming the small clusters
+            small.index = which(lapply(AHC_real, length) <= smallcluster)
+            if (length(small.index) != 0){
+              AHC_junk_new <- sort(unlist(AHC_cluster[small.index]))
+              AHC_junk = sort(union(AHC_junk_new, AHC_junk))
+              AHC_real <- AHC_real[-small.index]
+            }
+          }
+
+        }## end of while
+      }else{
+
+        ## one-time outlier removal without iteration
         # filter SNPs with large contribution to the Q statistic
+        n_real_init <- length(unlist(AHC_real));
         for (k_iter in 1:Nr_real){
           leaf <- AHC_real[[k_iter]];
           Q_ind <- Qsq(betaX[leaf], betaY[leaf], seX[leaf], seY[leaf])[[5]];
@@ -159,13 +203,10 @@ MR_AHC <-function(betaX, betaY, seX, seY, n, alpha = 0.05,
           AHC_real[[k_iter]] <- leaf_new;
           AHC_junk <- sort(union(AHC_junk, leaf_remove))
         }
-
         real_snp <- sort(unlist(AHC_real));
-        i <- i + 1;
-        n_real[i] <- length(real_snp);
-
+        n_real <- length(real_snp);
         ## if any SNPs get removed, re-do clustering
-        if (n_real[i] - n_real[i - 1] < 0){
+        if (n_real < n_real_init){
           AHC_new <- AHC.IV(betaX[real_snp], betaY[real_snp], seX[real_snp], seY[real_snp],
                             n, tuning, weak);
 
@@ -186,53 +227,12 @@ MR_AHC <-function(betaX, betaY, seX, seY, n, alpha = 0.05,
           }
         }
 
-      }## end of while
-    }else{
-
-      ## one-time outlier removal without iteration
-      # filter SNPs with large contribution to the Q statistic
-      n_real_init <- length(unlist(AHC_real));
-      for (k_iter in 1:Nr_real){
-        leaf <- AHC_real[[k_iter]];
-        Q_ind <- Qsq(betaX[leaf], betaY[leaf], seX[leaf], seY[leaf])[[5]];
-        Q_ind_p <- 1-pchisq(Q_ind, df = 1);
-
-        p_threshold <- iter.p;
-        leaf_new <- leaf[which(Q_ind_p >= p_threshold)];
-        leaf_remove <- leaf[which(Q_ind_p < p_threshold)];
-
-        AHC_real[[k_iter]] <- leaf_new;
-        AHC_junk <- sort(union(AHC_junk, leaf_remove))
-      }
-      real_snp <- sort(unlist(AHC_real));
-      n_real <- length(real_snp);
-      ## if any SNPs get removed, re-do clustering
-      if (n_real < n_real_init){
-        AHC_new <- AHC.IV(betaX[real_snp], betaY[real_snp], seX[real_snp], seY[real_snp],
-                          n, tuning, weak);
-
-        AHC_real <- AHC_new ## re-value AHC_real;
-        for (k_new in 1:length(AHC_new)){
-          AHC_real[[k_new]] <- real_snp[AHC_new[[k_new]]];
-        }
-
-        junk_new <- setdiff(real_snp, sort(unlist(AHC_real)));
-        AHC_junk <- sort(c(AHC_junk, junk_new))
-
-        # trimming the small clusters
-        small.index = which(lapply(AHC_real, length) <= smallcluster)
-        if (length(small.index) != 0){
-          AHC_junk_new <- sort(unlist(AHC_cluster[small.index]))
-          AHC_junk = sort(union(AHC_junk_new, AHC_junk))
-          AHC_real <- AHC_real[-small.index]
-        }
       }
 
     }
-
   }
 
-  AHC_cluster = AHC_cluster_real <- AHC_real;
+  AHC_cluster <- AHC_cluster_real <- AHC_real;
   AHC_cluster_junk <- AHC_junk;
 
   if (length(AHC_cluster_junk) != 0){AHC_cluster[[length(AHC_cluster) + 1]] <- AHC_cluster_junk}else{AHC_cluster_junk <- NULL}
