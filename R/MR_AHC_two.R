@@ -1,4 +1,5 @@
 
+
 #' Implementing the MR-AHC method for detecting genetic variants clusters
 #' and conducting post-clustering estimation using summary statistics in Mendelian randomization with two outcomes.
 
@@ -37,8 +38,8 @@
 #'@export
 
 MR_AHC_two <-function(betaX, betaY1, betaY2, seX, seY1, seY2, n, alpha = 0.05,
-                  tuning = 0.1/log(n), smallcluster = 4, outremove = FALSE,
-                  iter = FALSE, iter.p = 0.05, rho = 0){
+                      tuning = 0.1/log(n), smallcluster = 4, outremove = FALSE,
+                      iter = FALSE, iter.p = 0.05, rho = 0){
 
   # Check Input
   if(is.data.frame(betaX)){betaX <- as.matrix(betaX)}
@@ -156,7 +157,7 @@ MR_AHC_two <-function(betaX, betaY1, betaY2, seX, seY1, seY2, n, alpha = 0.05,
             # trimming the small clusters
             small.index = which(lapply(AHC_real, length) <= smallcluster)
             if (length(small.index) != 0){
-              AHC_junk_new <- sort(unlist(AHC_cluster[small.index]))
+              AHC_junk_new <- sort(unlist(AHC_real[small.index]))
               AHC_junk = sort(union(AHC_junk_new, AHC_junk))
               AHC_real <- AHC_real[-small.index]
             }
@@ -198,7 +199,7 @@ MR_AHC_two <-function(betaX, betaY1, betaY2, seX, seY1, seY2, n, alpha = 0.05,
           # trimming the small clusters
           small.index = which(lapply(AHC_real, length) <= smallcluster)
           if (length(small.index) != 0){
-            AHC_junk_new <- sort(unlist(AHC_cluster[small.index]))
+            AHC_junk_new <- sort(unlist(AHC_real[small.index]))
             AHC_junk = sort(union(AHC_junk_new, AHC_junk))
             AHC_real <- AHC_real[-small.index]
           }
@@ -309,7 +310,7 @@ dissimi <- function(sk, sl, b1, b2, se1, se2, rho){
   var_kl1 <- ivw_var_k1 + ivw_var_l1;
   var_kl2 <- ivw_var_k2 + ivw_var_l2;
   cov_kl <- rho * ivw_var_k1 * ivw_var_k2 * sum(1/sek1^2 * 1/sek2^2) +
-            rho * ivw_var_l1 * ivw_var_l2 * sum(1/sel1^2 * 1/sel2^2);
+    rho * ivw_var_l1 * ivw_var_l2 * sum(1/sel1^2 * 1/sel2^2);
 
   var_matrix <- matrix(c(var_kl1, cov_kl, cov_kl, var_kl2), nrow = 2);
 
@@ -389,9 +390,9 @@ hier_tree <- function(b1, b2, se1, se2, rho){
     merge_id_ind <- sort(unlist(base_id[merge_id]));
 
     merge_est <- c(ivw_est(b1[merge_id_ind], se1[merge_id_ind])[1],
-                        ivw_est(b2[merge_id_ind], se2[merge_id_ind])[1],
-                        sqrt(ivw_est(b1[merge_id_ind], se1[merge_id_ind])[2]),
-                        sqrt(ivw_est(b2[merge_id_ind], se2[merge_id_ind])[2]));
+                   ivw_est(b2[merge_id_ind], se2[merge_id_ind])[1],
+                   sqrt(ivw_est(b1[merge_id_ind], se1[merge_id_ind])[2]),
+                   sqrt(ivw_est(b2[merge_id_ind], se2[merge_id_ind])[2]));
 
     i <- i + 1;
 
@@ -446,14 +447,14 @@ Q_two <- function(sk, b1, b2, se1, se2, rho){
                       cbind(diag(rho, sk_len), diag(sek2^2)));
 
   Q_crit <- matrix(c(bk1 - rep(ivw_est_k1, sk_len), bk2 - rep(ivw_est_k2, sk_len)), nrow = 1) %*%
-                    solve(var_matrix) %*%
+    solve(var_matrix) %*%
     matrix(c(bk1 - rep(ivw_est_k1, sk_len), bk2 - rep(ivw_est_k2, sk_len)), ncol = 1);
 
   Q_ind <- rep(NA, sk_len)
   for (k in 1:sk_len){
 
     var_matrix_ind <- rbind(cbind(diag(sek1[k]^2, 1), diag(rho, 1)),
-                        cbind(diag(rho, 1), diag(sek2[k]^2, 1)));
+                            cbind(diag(rho, 1), diag(sek2[k]^2, 1)));
 
     Q_ind_value <- matrix(c(bk1[k] - rep(ivw_est_k1, 1), bk2[k] - rep(ivw_est_k2, 1)), nrow = 1) %*%
       solve(var_matrix_ind) %*%
