@@ -179,7 +179,7 @@ MR_AHC <-function(betaX, betaY, seX, seY, n, alpha = 0.05,
             # trimming the small clusters
             small.index = which(lapply(AHC_real, length) <= smallcluster)
             if (length(small.index) != 0){
-              AHC_junk_new <- sort(unlist(AHC_cluster[small.index]))
+              AHC_junk_new <- sort(unlist(AHC_real[small.index]))
               AHC_junk = sort(union(AHC_junk_new, AHC_junk))
               AHC_real <- AHC_real[-small.index]
             }
@@ -221,7 +221,7 @@ MR_AHC <-function(betaX, betaY, seX, seY, n, alpha = 0.05,
           # trimming the small clusters
           small.index = which(lapply(AHC_real, length) <= smallcluster)
           if (length(small.index) != 0){
-            AHC_junk_new <- sort(unlist(AHC_cluster[small.index]))
+            AHC_junk_new <- sort(unlist(AHC_real[small.index]))
             AHC_junk = sort(union(AHC_junk_new, AHC_junk))
             AHC_real <- AHC_real[-small.index]
           }
