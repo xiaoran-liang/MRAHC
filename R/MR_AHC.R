@@ -21,16 +21,15 @@
 
 #'@return Cluster_number: The number of clusters detected by the algorithm (including the junk cluster).
 #'@return Cluster_number_real: The number of substantive clusters detected by the algorithm (excluding the junk cluster).
-#'@return AHC_cluster: All the clusters detected by the algorithm. SNPs identities (as in the dataset) are listed in each cluster.
-#'@return AHC_cluster_real: All the substantive clusters detected by the algorithm. SNPs identities (as in the dataset) are listed in each cluster.
+#'@return AHC_cluster: The cluster ids of all the SNPs. id = 0 means the SNPs are assigned to the junk cluster.
 #'@return Null_cluster: Cluster index of the null cluster.
 #'@return Junk_cluster: Identities of SNPs in the junk cluster.
 #'@return F: the F statistic for all the IVs.
 #'@return AHC_results: A matrix that summarizes the clustering and estimation results, including:
 #'           (a) length: The number of IVs in each cluster.
 #'           (b) beta: the point estimate estimated with each cluster.
-#'          (c) se: the standard error for the causal estimate in each cluster
-#'          (d) t: the t statistic.
+#'           (c) se: the standard error for the causal estimate in each cluster
+#'           (d) t: the t statistic.
 #'           (e) Qp: The p-value for the Q test of the instruments in each cluster.
 #'           (f) I^2: The I statistic of the instruments in each cluster.
 #'@return Confidence interval: The 95% (default) confidence intervals of the cluster-specific estimates.
@@ -116,20 +115,17 @@ MR_AHC <-function(betaX, betaY, seX, seY, n, alpha = 0.05,
     AHC_junk <- NULL;
   }else{
     # AHC procedure
-    AHC_cluster <- AHC.IV(betaX, betaY, seX, seY, n, tuning, weak); ## this is the substantive clusters
+    AHC_real <- AHC.IV(betaX, betaY, seX, seY, n, tuning, weak); ## this is the substantive clusters
     # IVs that do not belong to any clusters are classified as in the junk cluster.
-    AHC_junk <- sort(c(1:pz)[-unlist(AHC_cluster)]);
+    AHC_junk <- sort(c(1:pz)[-unlist(AHC_real)]);
 
     # trimming the small clusters
-    small.index = which(lapply(AHC_cluster, length) <= smallcluster)
+    small.index = which(lapply(AHC_real, length) <= smallcluster)
     if (length(small.index) != 0){
-      AHC_junk_new <- sort(unlist(AHC_cluster[small.index]))
+      AHC_junk_new <- sort(unlist(AHC_real[small.index]))
       AHC_junk = sort(union(AHC_junk_new, AHC_junk))
-      AHC_cluster <- AHC_cluster[-small.index]
+      AHC_real <- AHC_real[-small.index]
     }
-
-    AHC_real <- AHC_cluster;
-    Nr_real <- length(AHC_real); # number of substantive clusters
 
     ## Outlier removal
     if (outremove == TRUE){
@@ -191,7 +187,7 @@ MR_AHC <-function(betaX, betaY, seX, seY, n, alpha = 0.05,
         ## one-time outlier removal without iteration
         # filter SNPs with large contribution to the Q statistic
         n_real_init <- length(unlist(AHC_real));
-        for (k_iter in 1:Nr_real){
+        for (k_iter in 1:length(AHC_real)){
           leaf <- AHC_real[[k_iter]];
           Q_ind <- Qsq(betaX[leaf], betaY[leaf], seX[leaf], seY[leaf])[[5]];
           Q_ind_p <- 1-pchisq(Q_ind, df = 1);
@@ -210,13 +206,13 @@ MR_AHC <-function(betaX, betaY, seX, seY, n, alpha = 0.05,
           AHC_new <- AHC.IV(betaX[real_snp], betaY[real_snp], seX[real_snp], seY[real_snp],
                             n, tuning, weak);
 
-          AHC_real <- AHC_new ## re-value AHC_real;
+          AHC_real <- AHC_new ## update AHC_real;
           for (k_new in 1:length(AHC_new)){
             AHC_real[[k_new]] <- real_snp[AHC_new[[k_new]]];
           }
 
           junk_new <- setdiff(real_snp, sort(unlist(AHC_real)));
-          AHC_junk <- sort(c(AHC_junk, junk_new))
+          AHC_junk <- sort(c(AHC_junk, junk_new));
 
           # trimming the small clusters
           small.index = which(lapply(AHC_real, length) <= smallcluster)
@@ -232,13 +228,17 @@ MR_AHC <-function(betaX, betaY, seX, seY, n, alpha = 0.05,
     }
   }
 
-  AHC_cluster <- AHC_cluster_real <- AHC_real;
-  AHC_cluster_junk <- AHC_junk;
-
-  if (length(AHC_cluster_junk) != 0){AHC_cluster[[length(AHC_cluster) + 1]] <- AHC_cluster_junk}else{AHC_cluster_junk <- NULL}
-
-  Nr_real <- length(AHC_cluster_real); # number of substantive clusters
-  Nr_all <- length(AHC_cluster) # number of total clusters including the junk cluster.
+  Nr_real <- length(AHC_real); # number of substantive clusters
+  
+  # clustering result, cluster id for junk SNPs = 0
+  AHC_cluster <- rep(0, pz);
+  
+  for (k in 1:Nr_real){
+    snp_index <- AHC_real[[k]];
+    AHC_cluster[snp_index] <- k;
+  }
+  
+  Nr_all <- length(unique(AHC_cluster)); # number of total clusters including the junk cluster.
 
   # Post-clustering estimation
   AHC_results <- matrix(NA, nrow = Nr_real, ncol = 7);
@@ -246,9 +246,9 @@ MR_AHC <-function(betaX, betaY, seX, seY, n, alpha = 0.05,
 
   for (k_r in 1:Nr_real){
     AHC_results[k_r, "ID"] <- k_r;
-    AHC_results[k_r, "length"] <- length(AHC_cluster_real[[k_r]]);
+    AHC_results[k_r, "length"] <- length(AHC_real[[k_r]]);
 
-    leaf_kr <- AHC_cluster_real[[k_r]];
+    leaf_kr <- AHC_real[[k_r]];
     results_kr <- Qsq(betaX[leaf_kr], betaY[leaf_kr], seX[leaf_kr], seY[leaf_kr]);
     AHC_results[k_r, "beta"] <- results_kr[[2]];
     AHC_results[k_r, "se"] <- results_kr[[3]];
@@ -271,9 +271,8 @@ MR_AHC <-function(betaX, betaY, seX, seY, n, alpha = 0.05,
   results = list( Cluster_number = Nr_all,
                   Cluster_number_real = Nr_real,
                   AHC_cluster = AHC_cluster,
-                  AHC_cluster_real = AHC_cluster_real,
                   Null_cluster = null_index,
-                  Junk_cluster = AHC_cluster_junk,
+                  Junk_cluster = AHC_junk,
                   F = F_bar,
                   AHC_results = AHC_results,
                   confidence_interval = confidence_interval)
