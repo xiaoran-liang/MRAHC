@@ -44,15 +44,13 @@ output_1_a$Cluster_number
 output_1_a$Cluster_number_real
 ## 3. genetic variant clusters detected by the algorithm
 output_1_a$AHC_cluster
-## 4. non-junk genetic variant clusters detected by the algorithm
-output_1_a$AHC_cluster_real
-## 5. the cluster index of the null cluster
+## 4. the cluster index of the null cluster
 output_1_a$Null_cluster
-## 6. genetic variants in the junk cluster
+## 5. genetic variants in the junk cluster
 output_1_a$Junk_cluster
-## 7. the F statstic
+## 6. the F statstic
 output_1_a$F
-## 8. the post-clustering estimation results, including:
+## 7. the post-clustering estimation results, including:
 ##           (a) length: The number of IVs in each cluster.
 ##           (b) beta: the point estimate estimated with each cluster.
 ##           (c) se: the standard error for the causal estimate in each cluster
@@ -60,7 +58,7 @@ output_1_a$F
 ##           (e) Qp: The p-value for the Q test of the instruments in each cluster.
 ##           (f) I^2: The I statistic of the instruments in each cluster.
 output_1_a$AHC_results
-## 9. the 95% confidence intervals for the cluster-specific IVW estimates
+## 8. the 95% confidence intervals for the cluster-specific IVW estimates
 output_1_a$confidence_interval
 
 ## (2). illustration of the usage of the MR_AHC_two function
